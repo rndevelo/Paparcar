@@ -1,0 +1,213 @@
+package io.rndev.paparcar.login
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import paparcar.composeapp.generated.resources.Res
+import paparcar.composeapp.generated.resources.ic_google
+import paparcar.composeapp.generated.resources.ic_paparcar_black
+import paparcar.composeapp.generated.resources.login_text_email
+import paparcar.composeapp.generated.resources.login_text_hide_password
+import paparcar.composeapp.generated.resources.login_text_password
+import paparcar.composeapp.generated.resources.login_text_show_password
+import paparcar.composeapp.generated.resources.login_text_sign_in
+import paparcar.composeapp.generated.resources.login_text_sign_in_with_google
+import paparcar.composeapp.generated.resources.login_text_signing_in
+
+@Composable
+fun LoginScreen(
+    vm: LoginViewModel = viewModel(),
+    onLoginClick: (email: String, password: String) -> Unit,
+    onGoogleSignInClick: () -> Unit,
+) {
+
+    val state = vm.state
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var showEmailForm by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp)
+            .verticalScroll(rememberScrollState()) // 👈 permite hacer scroll si el teclado tapa
+            .imePadding()                          // 👈 añade padding automático cuando aparece el teclado
+            .navigationBarsPadding(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        Image(
+            painter = painterResource(Res.drawable.ic_paparcar_black),
+            contentDescription = Res.drawable.ic_paparcar_black.toString(),
+            modifier = Modifier.size(90.dp)
+        )
+
+        Text("Tu plaza, más cerca", style = MaterialTheme.typography.headlineMedium)
+
+        Spacer(Modifier.height(16.dp))
+
+        AnimatedVisibility(visible = showEmailForm) {
+
+            Column {
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text(stringResource(Res.string.login_text_email)) },
+                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                    singleLine = true,
+                    isError = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Next
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                PasswordTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    onDone = { onLoginClick(email.trim(), password.trim()) },
+                    isError = state.error != null,
+                )
+
+                Spacer(Modifier.height(16.dp))
+            }
+        }
+
+        Button(
+            onClick = { showEmailForm = !showEmailForm },
+//            enabled = email.isNotBlank() && password.isNotBlank(),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(Res.string.login_text_sign_in))
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        OutlinedButton(
+            onClick = onGoogleSignInClick,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            GoogleButtonContent(false)
+        }
+    }
+}
+
+@Composable
+private fun PasswordTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    onDone: () -> Unit,
+    isError: Boolean = false,
+) {
+
+    var isPasswordVisible by remember { mutableStateOf(false) } // 👈 estado para visibilidad
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(stringResource(Res.string.login_text_password)) },
+        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+        trailingIcon = {
+            val icon =
+                if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+            val description =
+                if (isPasswordVisible) stringResource(Res.string.login_text_hide_password)
+                else stringResource(Res.string.login_text_show_password)
+            Icon(
+                imageVector = icon,
+                contentDescription = description,
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .clickable { isPasswordVisible = !isPasswordVisible }
+            )
+        },
+        visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        singleLine = true,
+        isError = isError,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions { onDone },
+        modifier = Modifier.fillMaxWidth()
+
+    )
+}
+
+@Composable
+private fun GoogleButtonContent(isLoading: Boolean) {
+
+    Row(
+        modifier = Modifier
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMedium
+                )
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        Image(
+            painter = painterResource(Res.drawable.ic_google),
+            contentDescription = Res.drawable.ic_google.toString(),
+            modifier = Modifier
+                .size(35.dp)
+                .padding(horizontal = 8.dp),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = if (isLoading) stringResource(Res.string.login_text_signing_in)
+            else stringResource(Res.string.login_text_sign_in_with_google)
+        )
+    }
+}
