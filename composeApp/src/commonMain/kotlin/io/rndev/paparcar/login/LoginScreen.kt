@@ -2,8 +2,6 @@ package io.rndev.paparcar.login
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,12 +21,14 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -40,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -48,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import paparcar.composeapp.generated.resources.Res
 import paparcar.composeapp.generated.resources.ic_google
 import paparcar.composeapp.generated.resources.ic_paparcar_black
@@ -56,52 +58,115 @@ import paparcar.composeapp.generated.resources.login_text_hide_password
 import paparcar.composeapp.generated.resources.login_text_password
 import paparcar.composeapp.generated.resources.login_text_show_password
 import paparcar.composeapp.generated.resources.login_text_sign_in
+import paparcar.composeapp.generated.resources.login_text_sign_in_with_email
 import paparcar.composeapp.generated.resources.login_text_sign_in_with_google
 import paparcar.composeapp.generated.resources.login_text_signing_in
 
+@Preview
 @Composable
 fun LoginScreen(
     vm: LoginViewModel = viewModel(),
-    onLoginClick: (email: String, password: String) -> Unit,
-    onGoogleSignInClick: () -> Unit,
+    onLoginClick: (String, String) -> Unit,
+    onGoogleSignInClick: () -> Unit
 ) {
 
     val state = vm.state
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var showEmailForm by remember { mutableStateOf(false) }
+    var isShowEmailForm by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(32.dp)
+            .animateContentSize()
             .verticalScroll(rememberScrollState()) // 👈 permite hacer scroll si el teclado tapa
             .imePadding()                          // 👈 añade padding automático cuando aparece el teclado
             .navigationBarsPadding(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
+        // Logo
         Image(
             painter = painterResource(Res.drawable.ic_paparcar_black),
             contentDescription = Res.drawable.ic_paparcar_black.toString(),
             modifier = Modifier.size(90.dp)
         )
 
-        Text("Tu plaza, más cerca", style = MaterialTheme.typography.headlineMedium)
+        Spacer(Modifier.height(12.dp))
 
-        Spacer(Modifier.height(16.dp))
+        // Título
+        Text(
+            text = "Bienvenido de nuevo",
+            style = MaterialTheme.typography.headlineMedium
+        )
 
-        AnimatedVisibility(visible = showEmailForm) {
+        Spacer(Modifier.height(24.dp))
 
+        AnimatedVisibility(visible = !isShowEmailForm) {
             Column {
+                // Botón Email
+                OutlinedButton(
+                    onClick = { isShowEmailForm = !isShowEmailForm },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(45.dp),
+                ) {
+                    Icon(
+                        Icons.Default.Email,
+                        contentDescription = stringResource(Res.string.login_text_sign_in),
+                        tint = Color.Gray
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = stringResource(Res.string.login_text_sign_in_with_email))
+                }
+
+                Spacer(Modifier.height(12.dp))
+
+                // Botón Google
+                OutlinedButton(
+                    onClick = onGoogleSignInClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(45.dp)
+                ) {
+                    Image(
+                        painter = painterResource(Res.drawable.ic_google),
+                        contentDescription = Res.drawable.ic_google.toString(),
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        if (false) stringResource(Res.string.login_text_signing_in)
+                        else stringResource(Res.string.login_text_sign_in_with_google)
+                    )
+                }
+            }
+        }
+
+        // Formulario de Email
+        AnimatedVisibility(visible = isShowEmailForm) {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { isShowEmailForm = false }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                    Text("Inicia sesión con Email", style = MaterialTheme.typography.titleLarge)
+                }
+
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text(stringResource(Res.string.login_text_email)) },
                     leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                     singleLine = true,
-                    isError = true,
+                    isError = false,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Email,
                         imeAction = ImeAction.Next
@@ -119,24 +184,16 @@ fun LoginScreen(
                 )
 
                 Spacer(Modifier.height(16.dp))
+
+                Button(
+                    onClick = { onLoginClick(email.trim(), password.trim()) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(45.dp)
+                ) {
+                    Text(stringResource(Res.string.login_text_sign_in))
+                }
             }
-        }
-
-        Button(
-            onClick = { showEmailForm = !showEmailForm },
-//            enabled = email.isNotBlank() && password.isNotBlank(),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(stringResource(Res.string.login_text_sign_in))
-        }
-
-        Spacer(Modifier.height(12.dp))
-
-        OutlinedButton(
-            onClick = onGoogleSignInClick,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            GoogleButtonContent(false)
         }
     }
 }
@@ -155,7 +212,12 @@ private fun PasswordTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(stringResource(Res.string.login_text_password)) },
-        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+        leadingIcon = {
+            Icon(
+                Icons.Default.Lock,
+                contentDescription = Icons.Default.Lock.toString()
+            )
+        },
         trailingIcon = {
             val icon =
                 if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
@@ -181,33 +243,4 @@ private fun PasswordTextField(
         modifier = Modifier.fillMaxWidth()
 
     )
-}
-
-@Composable
-private fun GoogleButtonContent(isLoading: Boolean) {
-
-    Row(
-        modifier = Modifier
-            .animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMedium
-                )
-            ),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
-    ) {
-        Image(
-            painter = painterResource(Res.drawable.ic_google),
-            contentDescription = Res.drawable.ic_google.toString(),
-            modifier = Modifier
-                .size(35.dp)
-                .padding(horizontal = 8.dp),
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = if (isLoading) stringResource(Res.string.login_text_signing_in)
-            else stringResource(Res.string.login_text_sign_in_with_google)
-        )
-    }
 }

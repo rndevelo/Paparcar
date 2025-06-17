@@ -7,6 +7,7 @@
         <string name="login_text_hide_password">Hide password</string>
         <string name="login_text_show_password">Show password</string>
         <string name="login_text_signing_in">Signing in…</string>
+        <string name="login_text_sign_in_with_email">Sign in with Email</string>
         <string name="login_text_sign_in_with_google">Sign in with Google</string>
 
 </resources>
