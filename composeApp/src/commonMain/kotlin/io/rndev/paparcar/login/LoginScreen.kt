@@ -34,6 +34,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,7 +48,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -65,15 +66,24 @@ import paparcar.composeapp.generated.resources.login_text_signing_in
 @Preview
 @Composable
 fun LoginScreen(
-    vm: LoginViewModel = viewModel(),
-    onLoginClick: (String, String) -> Unit,
-    onGoogleSignInClick: () -> Unit
+    vm: LoginViewModel,
 ) {
 
     val state = vm.state
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isShowEmailForm by remember { mutableStateOf(false) }
+
+    val isAuthenticated by vm.isAuthenticated.collectAsState()
+
+    var text by remember { mutableStateOf("") }
+
+
+    LaunchedEffect(isAuthenticated) {
+        println("LoginScreen: isAuthenticated $isAuthenticated  AuthRepositoryImpl")
+
+        text = isAuthenticated.toString()
+    }
 
     Column(
         modifier = Modifier
@@ -86,6 +96,8 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        Text(text)
         // Logo
         Image(
             painter = painterResource(Res.drawable.ic_paparcar_black),
@@ -102,6 +114,15 @@ fun LoginScreen(
         )
 
         Spacer(Modifier.height(24.dp))
+
+        Button(
+            onClick = { vm.onSignOut() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(45.dp)
+        ) {
+            Text("Sign out")
+        }
 
         AnimatedVisibility(visible = !isShowEmailForm) {
             Column {
@@ -125,7 +146,7 @@ fun LoginScreen(
 
                 // Botón Google
                 OutlinedButton(
-                    onClick = onGoogleSignInClick,
+                    onClick = {},
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(45.dp)
@@ -179,14 +200,14 @@ fun LoginScreen(
                 PasswordTextField(
                     value = password,
                     onValueChange = { password = it },
-                    onDone = { onLoginClick(email.trim(), password.trim()) },
+                    onDone = { vm.onSignIn(email.trim(), password.trim()) },
                     isError = state.error != null,
                 )
 
                 Spacer(Modifier.height(16.dp))
 
                 Button(
-                    onClick = { onLoginClick(email.trim(), password.trim()) },
+                    onClick = { vm.onSignUpClick(email.trim(), password.trim()) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(45.dp)

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "165879016098",
+    "project_id": "kmp-paparcar",
+    "storage_bucket": "kmp-paparcar.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:165879016098:android:e528b4c85b17578c3bc5fb",
+        "android_client_info": {
+          "package_name": "io.rndev.paparcar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJVigEWnAGyHDTF1czIdiCrgG7EpfQIwo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
